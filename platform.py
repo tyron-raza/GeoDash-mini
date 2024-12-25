@@ -1,116 +1,219 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
-from OpenGL.GLU import *
 import random
 
 # Window dimensions
-W_WIDTH, W_HEIGHT = 800, 600
+W_Width, W_Height = 800, 600
 
-# Game variables
-ground_y = 100  # Y-coordinate of the ground
-ceiling_y = W_HEIGHT - 100  # Y-coordinate of the ceiling
-block_width = 50  # Width of each block
-block_height = 30  # Height of each block
-block_speed = 2  # Speed of blocks moving left
-blocks = []  # List of block objects
+# Platform dimensions
+ground_y = 200
+ceiling_y = 400
+block_width = 80  # Enlarged width
+block_height = 50  # Enlarged height
+triangle_base = 80  # Enlarged base
+triangle_height = 60  # Enlarged height
+block_speed = 0.09  # Initial speed
+speed_increment = 0.00001  # Incremental speed increase per frame
+max_speed = 0.1  # Maximum allowed speed
 
-# Player variables
-player_x = 100
-player_y = ground_y + block_height + 10
-player_width = 30
-player_height = 30
-player_color = (0, 1, 0)  # Green
+# Minimum gap between blocks/triangles
+min_gap = 120
 
-# FPS variables
-fps = 60
+# Block and triangle limits
+max_blocks = 2
+max_triangles = 2
 
-# Functions to create blocks
-def create_block():
-    # Randomly choose to place the block on the ground or the ceiling
-    position = random.choice(["ground", "ceiling"])
-    y = ground_y if position == "ground" else ceiling_y - block_height
-    x = W_WIDTH
-    block_color = (random.random(), random.random(), random.random())  # Random block color
-    return {"x": x, "y": y, "width": block_width, "height": block_height, "color": block_color}
+# List to store blocks and triangles
+blocks = []
+triangles = []
 
-# Add initial blocks
-for _ in range(5):
-    blocks.append(create_block())
+class Block:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.width = block_width
+        self.height = block_height
+        self.glow_intensity = 0.0
+        self.glow_direction = 1
 
-# Draw a rectangle
-def draw_rectangle(x, y, width, height, color):
-    glColor3f(*color)
-    glBegin(GL_QUADS)
-    glVertex2f(x, y)
-    glVertex2f(x + width, y)
-    glVertex2f(x + width, y + height)
-    glVertex2f(x, y + height)
-    glEnd()
+    def move(self):
+        self.x -= block_speed
 
-# Draw the ground and ceiling
-def draw_lines():
-    glColor3f(1, 1, 1)  # White
-    glBegin(GL_LINES)
-    # Ground line
-    glVertex2f(0, ground_y)
-    glVertex2f(W_WIDTH, ground_y)
-    # Ceiling line
-    glVertex2f(0, ceiling_y)
-    glVertex2f(W_WIDTH, ceiling_y)
-    glEnd()
+    def is_outside(self):
+        return self.x + self.width < 0
 
-# Display function
-def display():
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    glLoadIdentity()
+    def draw(self):
+        # Update glow intensity
+        self.glow_intensity += 0.02 * self.glow_direction
+        if self.glow_intensity > 1.0 or self.glow_intensity < 0.0:
+            self.glow_direction *= -1
 
-    # Draw ground and ceiling
-    draw_lines()
+        glColor4f(0.5, 0.2, 0.8, 0.6 + 0.4 * self.glow_intensity)  # Glow effect with alpha blending
+        glBegin(GL_QUADS)
+        glVertex2f(self.x, self.y)
+        glVertex2f(self.x + self.width, self.y)
+        glVertex2f(self.x + self.width, self.y + self.height)
+        glVertex2f(self.x, self.y + self.height)
+        glEnd()
 
-    # Draw blocks
+class Triangle:
+    def __init__(self, x, y, base, height, flipped=False):
+        self.x = x
+        self.y = y
+        self.base = base
+        self.height = height
+        self.flipped = flipped
+        self.glow_intensity = 1
+        self.glow_direction = 5
+
+    def move(self):
+        self.x -= block_speed
+
+    def is_outside(self):
+        return self.x + self.base < 0
+
+    def draw(self):
+        # Smoothly adjust glow intensity
+        self.glow_intensity += 0.002 * self.glow_direction  # Smaller step for smooth transition
+        if self.glow_intensity >= 1.0:
+            self.glow_intensity = 1.0
+            self.glow_direction = -1  # Reverse direction
+        elif self.glow_intensity <= 0.0:
+            self.glow_intensity = 0.0
+            self.glow_direction = 1  # Reverse direction
+
+        # Set color with glow effect (use alpha blending for smooth glow)
+        glColor4f(0.2, 0.8, 0.4, 0.6 + 0.4 * self.glow_intensity)
+
+        glBegin(GL_TRIANGLES)
+        if self.flipped:
+            glVertex2f(self.x, self.y)
+            glVertex2f(self.x + self.base / 2, self.y - self.height)
+            glVertex2f(self.x + self.base, self.y)
+        else:
+            glVertex2f(self.x, self.y)
+            glVertex2f(self.x + self.base / 2, self.y + self.height)
+            glVertex2f(self.x + self.base, self.y)
+        glEnd()
+
+def check_gap(new_x, existing_objects, width):
+    """Ensure there is a minimum gap between objects."""
+    for obj in existing_objects:
+        if abs(new_x - obj.x) < min_gap:
+            return False
+    return True
+
+def create_blocks():
+    global blocks
+    blocks = []
+    x_positions = list(range(W_Width, W_Width + 400, min_gap + block_width))
+    random.shuffle(x_positions)
+    for x in x_positions[:max_blocks]:
+        if check_gap(x, blocks + triangles, block_width):
+            blocks.append(Block(x, ground_y))
+
+def create_triangles():
+    global triangles
+    triangles = []
+    x_positions = list(range(W_Width, W_Width + 400, min_gap + triangle_base))
+    random.shuffle(x_positions)
+    for x in x_positions[:max_triangles]:
+        if check_gap(x, blocks + triangles, triangle_base):
+            if random.choice([True, False]):
+                triangles.append(Triangle(x, ground_y, triangle_base, triangle_height))  # Triangle on ground
+            else:
+                triangles.append(Triangle(x, ceiling_y, triangle_base, triangle_height, flipped=True))  # Triangle on ceiling
+
+def update_blocks_and_triangles():
+    global blocks, triangles
+
+    # Move blocks and triangles
     for block in blocks:
-        draw_rectangle(block["x"], block["y"], block["width"], block["height"], block["color"])
+        block.move()
+    blocks = [block for block in blocks if not block.is_outside()]
 
-    # Draw player
-    draw_rectangle(player_x, player_y, player_width, player_height, player_color)
+    for triangle in triangles:
+        triangle.move()
+    triangles = [triangle for triangle in triangles if not triangle.is_outside()]
 
+    # Spawn new blocks and triangles
+    if len(blocks) < max_blocks:
+        x_positions = list(range(W_Width, W_Width + 400, min_gap + block_width))
+        random.shuffle(x_positions)
+        for x in x_positions:
+            if check_gap(x, blocks + triangles, block_width):
+                blocks.append(Block(x, ground_y))
+                break
+
+    if len(triangles) < max_triangles:
+        x_positions = list(range(W_Width, W_Width + 400, min_gap + triangle_base))
+        random.shuffle(x_positions)
+        for x in x_positions:
+            if check_gap(x, blocks + triangles, triangle_base):
+                if random.choice([True, False]):
+                    triangles.append(Triangle(x, ground_y, triangle_base, triangle_height))  # Triangle on ground
+                else:
+                    triangles.append(Triangle(x, ceiling_y, triangle_base, triangle_height, flipped=True))  # Triangle on ceiling
+                break
+
+def draw_line(x1, y1, x2, y2):
+    glBegin(GL_LINES)
+    glVertex2f(x1, y1)
+    glVertex2f(x2, y2)
+    glEnd()
+
+def draw_platform():
+    glColor3f(1.0, 1.0, 1.0)
+    draw_line(0, ground_y, W_Width, ground_y)
+    draw_line(0, ceiling_y, W_Width, ceiling_y)
+
+def draw_blocks():
+    glColor3f(0.5, 0.2, 0.8)  # Block color
+    for block in blocks:
+        block.draw()
+
+def draw_triangles():
+    glColor3f(0.2, 0.8, 0.4)  # Triangle color
+    for triangle in triangles:
+        triangle.draw()
+
+def display():
+    glClear(GL_COLOR_BUFFER_BIT)
+    draw_platform()
+    draw_blocks()
+    draw_triangles()
     glutSwapBuffers()
 
-# Update function for animation
-def update(value):
-    global blocks
+def animate():
+    global block_speed
+    update_blocks_and_triangles()
 
-    # Move blocks from right to left
-    for block in blocks:
-        block["x"] -= block_speed
-
-    # Remove blocks that are off-screen
-    blocks = [block for block in blocks if block["x"] + block["width"] > 0]
-
-    # Add new blocks if needed
-    if len(blocks) < 5:
-        blocks.append(create_block())
+    # Gradually increase the speed, but cap it at max_speed
+    if block_speed < max_speed:
+        block_speed += speed_increment
 
     glutPostRedisplay()
-    glutTimerFunc(1000 // fps, update, 0)
 
-# Initialize OpenGL
 def init():
-    glClearColor(0, 0, 0, 1)  # Black background
+    glClearColor(0.0, 0.0, 0.0, 1.0)
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
-    glOrtho(0, W_WIDTH, 0, W_HEIGHT, -1, 1)
+    glOrtho(0.0, W_Width, 0.0, W_Height, -1.0, 1.0)
 
-# Main function
-def main():
-    glutInit()
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
-    glutInitWindowSize(W_WIDTH, W_HEIGHT)
-    glutCreateWindow(b"Moving Platform Game")
-    init()
-    glutDisplayFunc(display)
-    glutTimerFunc(0, update, 0)
-    glutMainLoop()
 
-if __name__ == "__main__":
-    main()
+
+
+# Initialize the game
+create_blocks()
+create_triangles()
+
+glutInit()
+glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
+glutInitWindowSize(W_Width, W_Height)
+glutCreateWindow(b"Moving Platform Game")
+init()
+glutDisplayFunc(display)
+glutIdleFunc(animate)
+glutMainLoop()
