@@ -33,8 +33,6 @@ class Block:
         self.y = y
         self.width = block_width
         self.height = block_height
-        self.glow_intensity = 0.0
-        self.glow_direction = 1
 
     def move(self):
         self.x -= block_speed
@@ -43,18 +41,32 @@ class Block:
         return self.x + self.width < 0
 
     def draw(self):
-        # Update glow intensity
-        self.glow_intensity += 0.02 * self.glow_direction
-        if self.glow_intensity > 1.0 or self.glow_intensity < 0.0:
-            self.glow_direction *= -1
+        # Draw the glow effect
+        self.draw_glow()
 
-        glColor4f(0.5, 0.2, 0.8, 0.6 + 0.4 * self.glow_intensity)  # Glow effect with alpha blending
+        # Draw the actual block
+        glColor3f(0.5, 0.2, 0.8)  # Original block color
         glBegin(GL_QUADS)
         glVertex2f(self.x, self.y)
         glVertex2f(self.x + self.width, self.y)
         glVertex2f(self.x + self.width, self.y + self.height)
         glVertex2f(self.x, self.y + self.height)
         glEnd()
+
+    def draw_glow(self):
+        # Draw multiple transparent layers to simulate a glow effect
+        for i in range(1, 9):  # Increase the range for a larger glow
+            alpha = 0.5 * (6 - i)  # Decrease alpha for outer layers
+            scale = 1.0 + 0.7 * i  # Increase size for outer layers
+            glColor4f(0.8, 0.2, 0.8, alpha)  # Pinkish glow with transparency
+            glBegin(GL_QUADS)
+            glVertex2f(self.x - scale, self.y - scale)
+            glVertex2f(self.x + self.width + scale, self.y - scale)
+            glVertex2f(self.x + self.width + scale, self.y + self.height + scale)
+            glVertex2f(self.x - scale, self.y + self.height + scale)
+            glEnd()
+
+
 
 class Triangle:
     def __init__(self, x, y, base, height, flipped=False):
@@ -63,8 +75,6 @@ class Triangle:
         self.base = base
         self.height = height
         self.flipped = flipped
-        self.glow_intensity = 1
-        self.glow_direction = 5
 
     def move(self):
         self.x -= block_speed
@@ -73,18 +83,11 @@ class Triangle:
         return self.x + self.base < 0
 
     def draw(self):
-        # Smoothly adjust glow intensity
-        self.glow_intensity += 0.002 * self.glow_direction  # Smaller step for smooth transition
-        if self.glow_intensity >= 1.0:
-            self.glow_intensity = 1.0
-            self.glow_direction = -1  # Reverse direction
-        elif self.glow_intensity <= 0.0:
-            self.glow_intensity = 0.0
-            self.glow_direction = 1  # Reverse direction
+        # Draw the glow effect
+        self.draw_glow()
 
-        # Set color with glow effect (use alpha blending for smooth glow)
-        glColor4f(0.2, 0.8, 0.4, 0.6 + 0.4 * self.glow_intensity)
-
+        # Draw the actual triangle
+        glColor3f(0.2, 0.8, 0.4)  # Original triangle color
         glBegin(GL_TRIANGLES)
         if self.flipped:
             glVertex2f(self.x, self.y)
@@ -95,6 +98,25 @@ class Triangle:
             glVertex2f(self.x + self.base / 2, self.y + self.height)
             glVertex2f(self.x + self.base, self.y)
         glEnd()
+
+    def draw_glow(self):
+        # Draw multiple transparent layers to simulate a glow effect
+        for i in range(20, 30):  # Increase the range for a larger glow
+            alpha = 0.05 * (6 - i)  # Decrease alpha for outer layers
+            scale = 1.0 + 0.1 * i  # Increase size for outer layers
+            glColor4f(0.8, 0.8, 0.2, alpha)  # Yellowish glow with transparency
+            glBegin(GL_TRIANGLES)
+            if self.flipped:
+                glVertex2f(self.x - scale, self.y + scale)
+                glVertex2f(self.x + self.base / 2, self.y - self.height - scale)
+                glVertex2f(self.x + self.base + scale, self.y + scale)
+            else:
+                glVertex2f(self.x - scale, self.y - scale)
+                glVertex2f(self.x + self.base / 2, self.y + self.height + scale)
+                glVertex2f(self.x + self.base + scale, self.y - scale)
+            glEnd()
+
+
 
 def check_gap(new_x, existing_objects, width):
     """Ensure there is a minimum gap between objects."""
@@ -196,11 +218,14 @@ def animate():
 
 def init():
     glClearColor(0.0, 0.0, 0.0, 1.0)
-    glEnable(GL_BLEND)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
     glOrtho(0.0, W_Width, 0.0, W_Height, -1.0, 1.0)
+
+    # Enable blending for transparency
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
 
 
 
