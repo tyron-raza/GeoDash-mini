@@ -94,16 +94,14 @@ class Block:
         return self.x + self.width < 0
 
     def draw(self):
-        # Draw the glow effect
+    # Draw the glow effect
         self.draw_glow()
-
-        # Draw the actual block
+    # Draw the actual block using GL_POINTS
         glColor3f(0.5, 0.2, 0.8)  # Original block color
-        glBegin(GL_QUADS)
-        glVertex2f(self.x, self.y)
-        glVertex2f(self.x + self.width, self.y)
-        glVertex2f(self.x + self.width, self.y + self.height)
-        glVertex2f(self.x, self.y + self.height)
+        glBegin(GL_POINTS)
+        for x in range(int(self.x), int(self.x + self.width) + 1):
+           for y in range(int(self.y), int(self.y + self.height) + 1):
+              glVertex2f(x, y)
         glEnd()
 
     def draw_glow(self):
@@ -112,14 +110,17 @@ class Block:
             alpha = 0.5 * (6 - i)  # Decrease alpha for outer layers
             scale = 1.0 + 0.7 * i  # Increase size for outer layers
             glColor4f(0.8, 0.2, 0.8, alpha)  # Pinkish glow with transparency
-            glBegin(GL_QUADS)
-            glVertex2f(self.x - scale, self.y - scale)
-            glVertex2f(self.x + self.width + scale, self.y - scale)
-            glVertex2f(self.x + self.width + scale, self.y + self.height + scale)
-            glVertex2f(self.x - scale, self.y + self.height + scale)
+            glow_x1 = int(self.x - scale)
+            glow_y1 = int(self.y - scale)
+            glow_x2 = int(self.x + self.width + scale)
+            glow_y2 = int(self.y + self.height + scale)
+
+        # Draw the glow layer using GL_POINTS
+            glBegin(GL_POINTS)
+            for x in range(glow_x1, glow_x2 + 1):
+               for y in range(glow_y1, glow_y2 + 1):
+                  glVertex2f(x, y)
             glEnd()
-
-
 
 class Triangle:
     def __init__(self, x, y, base, height, flipped=False):
