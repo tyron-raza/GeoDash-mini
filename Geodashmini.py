@@ -159,7 +159,7 @@ class Triangle:
         # Draw points for the current column
             for y in range(min(y_min, y_max), max(y_min, y_max) + 1):
                 glVertex2f(x, y)
-            glEnd()
+        glEnd()
 
     def draw_glow(self):
     # Draw multiple transparent layers to simulate a glow effect
@@ -186,7 +186,7 @@ class Triangle:
             # Draw points for the current column
                 for y in range(min(y_start, y_end), max(y_start, y_end) + 1):
                     glVertex2f(float(x), float(y))  # Draw each point
-                glEnd()
+            glEnd()
 
 
 def check_gap(new_x, existing_objects, width):
@@ -442,19 +442,20 @@ def restartGame():
 
 
 def display():
-    glClear(GL_COLOR_BUFFER_BIT)
-
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     global click, game_over, count, highest_score, game_paused
-    game_paused = False
+    glClearColor(0.0, 0.0, 0.0, 0.0)  # Set background color
+
     if game_over:
-        glClearColor(1.0, 1.0, 1.0, 0.0)
+        glClearColor(1.0, 1.0, 1.0, 0.0)  # Game over screen background
 
-    else:
-        glClearColor(0.0, 0.0, 0.0, 0.0)  
+    glClear(GL_COLOR_BUFFER_BIT)  # Clear buffers
+    draw_platform()
+    draw_blocks()
+    draw_triangles()
+    draw_player()
 
-    glClear(GL_COLOR_BUFFER_BIT)
-
-    #drawing buttons
+    # Draw game UI (hearts, pause, etc.)
     if count == 0:
         draw_heart1()
         draw_heart2()
@@ -466,19 +467,12 @@ def display():
         draw_heart1()
     
     draw_left_arrow()
-    if not game_paused:
-        draw_pause_symbol()
-    else:
-        draw_play_symbol() 
+    draw_pause_symbol() if not game_paused else draw_play_symbol()
     draw_cross()
-
     draw_highest_score_box()
-    draw_platform()
-    draw_blocks()
-    draw_player()
-    draw_triangles()
 
-    glutSwapBuffers()
+    glutSwapBuffers()  # Swap buffers for double buffering
+
 
 
 
