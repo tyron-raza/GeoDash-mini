@@ -251,12 +251,12 @@ def update_blocks_and_triangles():
 
 def draw_line(x1, y1, x2, y2, color):
     color=(1.0, 1.0, 1.0)
-    MidpointLine(x1, y1, x2, y2)
+    MidpointLine(x1, y1, x2, y2, color)
 
 def draw_platform():
     color = (1.0, 1.0, 1.0)
-    draw_line(0, ground_y, WINDOW_X, ground_y)
-    draw_line(0, ceiling_y, WINDOW_X, ceiling_y)
+    draw_line(0, ground_y, WINDOW_X, ground_y, color)
+    draw_line(0, ceiling_y, WINDOW_X, ceiling_y, color)
 
 def draw_blocks():
     glColor3f(0.5, 0.2, 0.8)  # Block color
