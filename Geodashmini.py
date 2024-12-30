@@ -58,6 +58,7 @@ def mouse_click_start_screen(button, state, x, y):
             glutDisplayFunc(display)
             glutMouseFunc(mouseClick)
             glutPostRedisplay()
+            
 ground_y = 200
 ceiling_y = 400
 block_width = 80  # Enlarged width
@@ -519,8 +520,8 @@ def display():
 
 
 def animate():
-    global block_speed, game_paused, game_over
-    if not game_paused and not game_over:
+    global block_speed, game_paused, game_over, show_start_screen
+    if not game_paused and not game_over and not show_start_screen:
         update_blocks_and_triangles()
         update_player()
 
@@ -589,9 +590,9 @@ def special_keyboard(key, x, y):
 
 
 def update_player():
-    global player_y, velocity_y, is_jumping, player_x, game_paused
+    global player_y, velocity_y, is_jumping, player_x, game_paused, show_start_screen, game_over
 
-    if not game_paused:
+    if not game_paused and not show_start_screen and not game_over:
         # Apply gravity if the player is jumping (not touching the ground or ceiling)
         if is_jumping:
             player_y += velocity_y  # Update player position based on velocity
@@ -659,6 +660,8 @@ def main():
 
 
     glutMainLoop()
+
+
 
 
 if __name__ == "__main__":
