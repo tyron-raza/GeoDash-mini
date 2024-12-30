@@ -621,17 +621,39 @@ def update_player():
 
 # Function to draw the player (red square)
 def draw_player():
+    def midpoint_circle(radius):
+        """Draw a circle using the midpoint circle algorithm."""
+        x = 0
+        y = radius
+        d = 1 - radius
+        plot_circle_points(x, y)  # Plot the initial set of points
+
+        while x < y:
+            if d < 0:
+                d = d + 2 * x + 3
+            else:
+                d = d + 2 * (x - y) + 5
+                y -= 1
+            x += 1
+            plot_circle_points(x, y)
+
+    def plot_circle_points(x, y):
+        """Plot symmetrical points for the circle."""
+        glBegin(GL_POINTS)
+        # Plot points for all octants
+        glVertex2f(player_x + x, player_y + y)  # Octant 1
+        glVertex2f(player_x - x, player_y + y)  # Octant 2
+        glVertex2f(player_x + x, player_y - y)  # Octant 3
+        glVertex2f(player_x - x, player_y - y)  # Octant 4
+        glVertex2f(player_x + y, player_y + x)  # Octant 5
+        glVertex2f(player_x - y, player_y + x)  # Octant 6
+        glVertex2f(player_x + y, player_y - x)  # Octant 7
+        glVertex2f(player_x - y, player_y - x)  # Octant 8
+        glEnd()
+
     glPushMatrix()
-    glTranslatef(player_x, player_y, 0)  # Set the x and y position of the player
     glColor3f(1.0, 0.0, 0.0)  # Fixed red color for the player
-
-    # Draw the player as a 50x50 square using points
-    glBegin(GL_POINTS)
-    for x in range(-25, 26):  # Iterate over x-coordinates
-        for y in range(-25, 26):  # Iterate over y-coordinates
-            glVertex2f(x, y)
-    glEnd()
-
+    midpoint_circle(25)  # Circle radius is 25 to match the original size
     glPopMatrix()
 
 
