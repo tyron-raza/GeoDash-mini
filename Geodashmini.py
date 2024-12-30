@@ -414,47 +414,53 @@ def draw_score_box():
     draw_text(f"Score: {score:.0f}", box_x1 + 10, box_y2 + 5)
  
 def check_collision():
-    global count, game_over
+
+    global count, game_over, game_paused
+    if not game_paused:
+
 
     # Check collision with blocks
-    for block in blocks:
-        if (player_x - 25 < block.x + block.width and
-            player_x + 25 > block.x and
-            player_y - 25 < block.y + block.height and
-            player_y + 25 > block.y):
-            count += 1  # Increment the collision count (lose a heart)
-            blocks.remove(block)  # Remove the collided block
-            if count >= 3:  # All hearts lost
-                game_over = True
-                print("Game Over")
-            return True
-
-    # Check collision with triangles
-    for triangle in triangles:
-        if triangle.flipped:
-            # Check collision for flipped triangle
-            if (player_x - 25 < triangle.x + triangle.base and
-                player_x + 25 > triangle.x and
-                player_y - 25 < triangle.y and
-                player_y + 25 > triangle.y - triangle.height):
-                count += 1
-                triangles.remove(triangle)  # Remove the collided triangle
-                if count >= 3:
+        for block in blocks:
+            if (player_x - 25 < block.x + block.width and
+                player_x + 25 > block.x and
+                player_y - 25 < block.y + block.height and
+                player_y + 25 > block.y):
+                count += 1  # Increment the collision count (lose a heart)
+                blocks.remove(block)  # Remove the collided block
+                if count >= 3:  # All hearts lost
                     game_over = True
+                    game_paused = True
                     print("Game Over")
                 return True
-        else:
-            # Check collision for normal triangle
-            if (player_x - 25 < triangle.x + triangle.base and
-                player_x + 25 > triangle.x and
-                player_y - 25 < triangle.y + triangle.height and
-                player_y + 25 > triangle.y):
-                count += 1
-                triangles.remove(triangle)
-                if count >= 3:
-                    game_over = True
-                    print("Game Over")
-                return True
+    
+        # Check collision with triangles
+        for triangle in triangles:
+            if triangle.flipped:
+                # Check collision for flipped triangle
+                if (player_x - 25 < triangle.x + triangle.base and
+                    player_x + 25 > triangle.x and
+                    player_y - 25 < triangle.y and
+                    player_y + 25 > triangle.y - triangle.height):
+                    count += 1
+                    triangles.remove(triangle)  # Remove the collided triangle
+                    if count >= 3:
+                        game_over = True
+                        game_paused = True
+                        print("Game Over")
+                    return True
+            else:
+                # Check collision for normal triangle
+                if (player_x - 25 < triangle.x + triangle.base and
+                    player_x + 25 > triangle.x and
+                    player_y - 25 < triangle.y + triangle.height and
+                    player_y + 25 > triangle.y):
+                    count += 1
+                    triangles.remove(triangle)
+                    if count >= 3:
+                        game_over = True
+                        game_paused = True
+                        print("Game Over")
+                    return True
 
 def togglePause():
     global game_paused
