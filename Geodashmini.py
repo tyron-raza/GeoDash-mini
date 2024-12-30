@@ -249,11 +249,12 @@ def update_blocks_and_triangles():
                     triangles.append(Triangle(x, ceiling_y, triangle_base, triangle_height, flipped=True))  # Triangle on ceiling
                 break
 
-def draw_line(x1, y1, x2, y2):
+def draw_line(x1, y1, x2, y2, color):
+    color=(1.0, 1.0, 1.0)
     MidpointLine(x1, y1, x2, y2)
 
 def draw_platform():
-    glColor3f(1.0, 1.0, 1.0)
+    color = (1.0, 1.0, 1.0)
     draw_line(0, ground_y, WINDOW_X, ground_y)
     draw_line(0, ceiling_y, WINDOW_X, ceiling_y)
 
