@@ -137,21 +137,30 @@ class Triangle:
         return self.x + self.base < 0
 
     def draw(self):
-        # Draw the glow effect
         self.draw_glow()
-
-        # Draw the actual triangle
         glColor3f(0.2, 0.8, 0.4)  # Original triangle color
-        glBegin(GL_TRIANGLES)
+        # Triangle vertices
         if self.flipped:
-            glVertex2f(self.x, self.y)
-            glVertex2f(self.x + self.base / 2, self.y - self.height)
-            glVertex2f(self.x + self.base, self.y)
+            p1 = (self.x, self.y)  # Bottom-left vertex
+            p2 = (self.x + self.base / 2, self.y - self.height)  # Top vertex
+            p3 = (self.x + self.base, self.y)  # Bottom-right vertex
         else:
-            glVertex2f(self.x, self.y)
-            glVertex2f(self.x + self.base / 2, self.y + self.height)
-            glVertex2f(self.x + self.base, self.y)
-        glEnd()
+            p1 = (self.x, self.y)  # Bottom-left vertex
+            p2 = (self.x + self.base / 2, self.y + self.height)  # Top vertex
+            p3 = (self.x + self.base, self.y)  # Bottom-right vertex
+        glBegin(GL_POINTS)
+        for x in range(int(p1[0]), int(p3[0]) + 1):  # Iterate through x-coordinates
+        # Calculate y-bounds for each x-coordinate
+            y_min = int(p1[1])
+            if x <= p2[0]:
+                y_max = int(p1[1] + (p2[1] - p1[1]) * (x - p1[0]) / (p2[0] - p1[0]))
+            else:
+                y_max = int(p1[1] + (p3[1] - p2[1]) * (x - p2[0]) / (p3[0] - p2[0]))
+        # Draw points for the current column
+            for y in range(min(y_min, y_max), max(y_min, y_max) + 1):
+                glVertex2f(x, y)
+    glEnd()
+
 
     def draw_glow(self):
         # Draw multiple transparent layers to simulate a glow effect
@@ -159,17 +168,32 @@ class Triangle:
             alpha = 0.05 * (6 - i)  # Decrease alpha for outer layers
             scale = 1.0 + 0.1 * i  # Increase size for outer layers
             glColor4f(0.8, 0.8, 0.2, alpha)  # Yellowish glow with transparency
-            glBegin(GL_TRIANGLES)
+    def draw_glow(self):
+    # Draw multiple transparent layers to simulate a glow effect
+        for i in range(20, 30):  # Increase the range for a larger glow
+            alpha = 0.05 * (6 - i)  # Decrease alpha for outer layers
+            scale = 1.0 + 0.1 * i  # Increase size for outer layers
+            glColor4f(0.8, 0.8, 0.2, alpha)  # Yellowish glow with transparency
             if self.flipped:
-                glVertex2f(self.x - scale, self.y + scale)
-                glVertex2f(self.x + self.base / 2, self.y - self.height - scale)
-                glVertex2f(self.x + self.base + scale, self.y + scale)
+               x1, y1 = self.x - scale, self.y + scale  # Bottom-left vertex
+               x2, y2 = self.x + self.base / 2, self.y - self.height - scale  # Top vertex
+               x3, y3 = self.x + self.base + scale, self.y + scale  # Bottom-right vertex
             else:
-                glVertex2f(self.x - scale, self.y - scale)
-                glVertex2f(self.x + self.base / 2, self.y + self.height + scale)
-                glVertex2f(self.x + self.base + scale, self.y - scale)
-            glEnd()
-
+               x1, y1 = self.x - scale, self.y - scale  # Bottom-left vertex
+               x2, y2 = self.x + self.base / 2, self.y + self.height + scale  # Top vertex
+               x3, y3 = self.x + self.base + scale, self.y - scale  # Bottom-right vertex
+            glBegin(GL_POINTS)
+            for x in range(int(x1), int(x3) + 1):  # Iterate over the x-coordinates
+                if x < x2:
+                   y_start = int(y1)
+                   y_end = int(y1 + (y2 - y1) * (x - x1) / (x2 - x1))  # Interpolate using slope
+                else:
+                   y_start = int(y1)
+                   y_end = int(y1 + (y3 - y2) * (x - x2) / (x3 - x2))  # Interpolate using slope
+            # Draw points for the current column
+                for y in range(min(y_start, y_end), max(y_start, y_end) + 1):
+                    glVertex2f(float(x), float(y))  # Draw each point
+        glEnd()
 
 
 def check_gap(new_x, existing_objects, width):
