@@ -11,6 +11,7 @@ game_paused = False
 game_over = False
 click = False
 score = 0
+high_score= 0
 count = 0
 
 def draw_text_centered(text, x, y, color=(1.0, 1.0, 1.0)):
@@ -23,7 +24,7 @@ def draw_text_centered(text, x, y, color=(1.0, 1.0, 1.0)):
 def display_start_screen():
     glClearColor(0.0, 0.0, 0.0, 0.0)  
     glClear(GL_COLOR_BUFFER_BIT)
-    draw_text_centered("Welcome to Geo Dash-Mini !!!", 400, 410, color=(1.0, 1.0, 0.0))
+    draw_text_centered("Geo Dash-Mini", 400, 410, color=(1.0, 1.0, 0.0))
 
     button_color = (0.0, 1.0, 0.0)
     button_x1, button_y1 = 350, 280
@@ -66,8 +67,8 @@ block_height = 50  # Enlarged height
 triangle_base = 80  # Enlarged base
 triangle_height = 60  # Enlarged height
 block_speed = 1  # Initial speed
-speed_increment = 0.00001  # Incremental speed increase per frame
-max_speed = 5  # Maximum allowed speed
+speed_increment = 0.0001  # Incremental speed increase per frame
+max_speed = 10  # Maximum allowed speed
 
 # Minimum gap between blocks/triangles
 min_gap = 120
@@ -150,7 +151,8 @@ class Triangle:
             p1 = (self.x, self.y)  # Bottom-left vertex
             p2 = (self.x + self.base / 2, self.y + self.height)  # Top vertex
             p3 = (self.x + self.base, self.y)  # Bottom-right vertex
-        glBegin(GL_POINTS)
+      
+
         for x in range(int(p1[0]), int(p3[0]) + 1):  # Iterate through x-coordinates
         # Calculate y-bounds for each x-coordinate
             y_min = int(p1[1])
@@ -159,9 +161,13 @@ class Triangle:
             else:
                 y_max = int(p1[1] + (p3[1] - p2[1]) * (x - p2[0]) / (p3[0] - p2[0]))
         # Draw points for the current column
-            for y in range(min(y_min, y_max), max(y_min, y_max) + 1):
-                glVertex2f(x, y)
-        glEnd()
+        
+            # for y in range(min(y_min, y_max), max(y_min, y_max) + 1):
+            #     glVertex2f(x, y) #falty generation
+        draw_line(p1[0], p1[1], p2[0], p2[1], color=(0.2, 0.8, 0.4))
+        draw_line(p2[0], p2[1], p3[0], p3[1], color=(0.2, 0.8, 0.4))
+        draw_line(p3[0], p3[1], p1[0], p1[1], color=(0.2, 0.8, 0.4))
+     
 
     def draw_glow(self):
     # Draw multiple transparent layers to simulate a glow effect
@@ -192,7 +198,7 @@ class Triangle:
 
 
 def check_gap(new_x, existing_objects, width):
-    """Ensure there is a minimum gap between objects."""
+  
     for obj in existing_objects:
         if abs(new_x - obj.x) < min_gap:
             return False
@@ -265,8 +271,7 @@ def update_blocks_and_triangles():
 
 
 
-def draw_line(x1, y1, x2, y2, color):
-    color=(1.0, 1.0, 1.0)
+def draw_line(x1, y1, x2, y2, color=(1.0, 1.0, 1.0)):
     MidpointLine(x1, y1, x2, y2, color)
 
 def draw_platform():
@@ -409,7 +414,6 @@ def draw_score_box():
     draw_text(f"Score: {score:.0f}", box_x1 + 10, box_y2 + 5)
  
 def check_collision():
-    """Check if the player collides with any block or triangle."""
     global count, game_over
 
     # Check collision with blocks
@@ -461,8 +465,9 @@ def togglePause():
         print("Game Resumed")
 
 def restartGame():
-    global game_over, score, count, game_paused, block_speed, blocks, triangles, player_x ,player_y ,velocity_y 
-    print(f"Your Previous Score: {score:.0f}")    
+    global game_over, score, count, game_paused, block_speed, blocks, triangles, player_x ,player_y ,velocity_y, high_score 
+    print(f"Your Last Score: {score:.0f}")  
+    print(f"Your Highest Score: {high_score:.0f}")   
     game_paused=False
     game_over = False
     count = 0
@@ -576,7 +581,7 @@ def keyboard(key, x, y):
 
 
 def special_keyboard(key, x, y):
-    global player_x
+    global player_x, block_speed
     step = 10  # Step size 
 
     if key == GLUT_KEY_LEFT:  
@@ -586,15 +591,24 @@ def special_keyboard(key, x, y):
     elif key == GLUT_KEY_RIGHT:  
         player_x += step
         if player_x > WINDOW_X:  
-            player_x = WINDOW_X - 50  
+            player_x = WINDOW_X - 50 
+    elif key == GLUT_KEY_UP:
+        block_speed+=1 
+    elif key == GLUT_KEY_DOWN:
+         block_speed-=1 
 
 
 def update_player():
-    global player_y, velocity_y, is_jumping, player_x, game_paused, show_start_screen, game_over
+    global player_y, velocity_y, is_jumping, player_x, game_paused, show_start_screen, game_over, score, high_score
+    if score>high_score:
+     high_score= score 
 
     if not game_paused and not show_start_screen and not game_over:
+        
+
         # Apply gravity if the player is jumping (not touching the ground or ceiling)
         if is_jumping:
+            score+=0.05
             player_y += velocity_y  # Update player position based on velocity
             player_x += 3
 
@@ -617,17 +631,16 @@ def update_player():
               print(f"Collision detected! Hearts left: {3 - count}")
            if count >= 3:  # No hearts left
               game_paused = True
-
-
-# Function to draw the player (red square)
+              glutDisplayFunc(display_start_screen)
+              glutMouseFunc(mouse_click_start_screen)
+              restartGame()
 def draw_player():
     def midpoint_circle(radius):
-        """Draw a circle using the midpoint circle algorithm."""
+    
         x = 0
         y = radius
         d = 1 - radius
-        plot_circle_points(x, y)  # Plot the initial set of points
-
+        plot_circle_points(x, y)  
         while x < y:
             if d < 0:
                 d = d + 2 * x + 3
@@ -638,7 +651,7 @@ def draw_player():
             plot_circle_points(x, y)
 
     def plot_circle_points(x, y):
-        """Plot symmetrical points for the circle."""
+     
         glBegin(GL_POINTS)
         # Plot points for all octants
         glVertex2f(player_x + x, player_y + y)  # Octant 1
@@ -652,18 +665,38 @@ def draw_player():
         glEnd()
 
     glPushMatrix()
-    glColor3f(1.0, 0.0, 0.0)  # Fixed red color for the player
-    midpoint_circle(25)  # Circle radius is 25 to match the original size
+    glColor3f(random.randint(0.0,1.0), random.randint(0.0,1.0),random.randint(0.0,1.0) )  
+    midpoint_circle(25)
+    midpoint_circle(24)
+    midpoint_circle(23)
+    midpoint_circle(22)
+    midpoint_circle(21)
+    midpoint_circle(20)
+    midpoint_circle(15)
+    midpoint_circle(14)
+    midpoint_circle(13)
+    midpoint_circle(12)
+    midpoint_circle(11)
+    midpoint_circle(10)
+    midpoint_circle(5)
+    midpoint_circle(4)
+    midpoint_circle(3)
+    midpoint_circle(2)
+    midpoint_circle(1)
     glPopMatrix()
 
 
 def update(value):
-    update_player()  # Update the player's position based on jump and gravity
+    global score, high_score
+    update_player() 
+
     glutPostRedisplay()  # Redraw the scene
-    glutTimerFunc(16, update, 0)  # Continue the update loop
+    glutTimerFunc(33, update, 0)
+      # Continue the update loop
 
 def main():
-    global show_start_screen, game_paused, score
+    global show_start_screen, game_paused, score, high_score
+
 
 
     glutInit(sys.argv)
@@ -677,7 +710,7 @@ def main():
     glutKeyboardFunc(keyboard)
     glutSpecialFunc(special_keyboard) 
     glutIdleFunc(animate)
-    glutTimerFunc(16, update, 0)
+    glutTimerFunc(33, update, 0)
     glutMainLoop()
 
 
