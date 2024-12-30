@@ -410,7 +410,49 @@ def draw_highest_score_box():
 
     draw_text(f"Score: {score:.0f}", box_x1 + 10, box_y2 + 5)
  
+def check_collision():
+    """Check if the player collides with any block or triangle."""
+    global count, game_over
 
+    # Check collision with blocks
+    for block in blocks:
+        if (player_x - 25 < block.x + block.width and
+            player_x + 25 > block.x and
+            player_y - 25 < block.y + block.height and
+            player_y + 25 > block.y):
+            count += 1  # Increment the collision count (lose a heart)
+            blocks.remove(block)  # Remove the collided block
+            if count >= 3:  # All hearts lost
+                game_over = True
+                print("Game Over")
+            return True
+
+    # Check collision with triangles
+    for triangle in triangles:
+        if triangle.flipped:
+            # Check collision for flipped triangle
+            if (player_x - 25 < triangle.x + triangle.base and
+                player_x + 25 > triangle.x and
+                player_y - 25 < triangle.y and
+                player_y + 25 > triangle.y - triangle.height):
+                count += 1
+                triangles.remove(triangle)  # Remove the collided triangle
+                if count >= 3:
+                    game_over = True
+                    print("Game Over")
+                return True
+        else:
+            # Check collision for normal triangle
+            if (player_x - 25 < triangle.x + triangle.base and
+                player_x + 25 > triangle.x and
+                player_y - 25 < triangle.y + triangle.height and
+                player_y + 25 > triangle.y):
+                count += 1
+                triangles.remove(triangle)
+                if count >= 3:
+                    game_over = True
+                    print("Game Over")
+                return True
 
 def togglePause():
     global game_paused
@@ -558,12 +600,15 @@ def update_player():
             velocity_y = 0  # Stop downward movement
             is_jumping = False  # Stop jumping
             player_x -= .1
+            
+        if check_collision():
+            print(f"Collision detected! Hearts left: {3 - count}")
 
 # Function to draw the player (red square)
 def draw_player():
     glPushMatrix()
     glTranslatef(player_x, player_y, 0)  # Set the x and y position of the player
-    glColor3f(random.randint(0, 1), random.randint(0, 1), random.randint(0, 1))  
+    glColor3f(1.0, 0.0, 0.0)  # Fixed red color for the player
 
     # Draw the player as a 50x50 square using points
     glBegin(GL_POINTS)
@@ -573,6 +618,7 @@ def draw_player():
     glEnd()
 
     glPopMatrix()
+
 
 
 
