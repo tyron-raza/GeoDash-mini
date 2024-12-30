@@ -12,7 +12,6 @@ game_over = False
 click = False
 score = 0
 count = 0
-highest_score = 0
 
 def draw_text_centered(text, x, y, color=(1.0, 1.0, 1.0)):
     glColor3f(*color)
@@ -86,6 +85,7 @@ class Block:
         self.y = y
         self.width = block_width
         self.height = block_height
+        self.passed = False 
 
     def move(self):
         self.x -= block_speed
@@ -129,6 +129,7 @@ class Triangle:
         self.base = base
         self.height = height
         self.flipped = flipped
+        self.passed = False 
 
     def move(self):
         self.x -= block_speed
@@ -218,18 +219,29 @@ def create_triangles():
                 triangles.append(Triangle(x, ceiling_y, triangle_base, triangle_height, flipped=True))  # Triangle on ceiling
 
 def update_blocks_and_triangles():
-    global blocks, triangles
+    global blocks, triangles, score
 
-    # Move blocks and triangles
+    # Move blocks and check if passed
     for block in blocks:
         block.move()
+        if not block.passed and block.x + block.width < player_x - 25:  # Player passed the block
+            block.passed = True
+            score += 1
+
+    # Remove blocks that are off-screen
     blocks = [block for block in blocks if not block.is_outside()]
 
+    # Move triangles and check if passed
     for triangle in triangles:
         triangle.move()
+        if not triangle.passed and triangle.x + triangle.base < player_x - 25:  # Player passed the triangle
+            triangle.passed = True
+            score += 1
+
+    # Remove triangles that are off-screen
     triangles = [triangle for triangle in triangles if not triangle.is_outside()]
 
-    # Spawn new blocks and triangles
+    # Spawn new blocks if needed
     if len(blocks) < max_blocks:
         x_positions = list(range(WINDOW_X, WINDOW_X + 400, min_gap + block_width))
         random.shuffle(x_positions)
@@ -238,16 +250,19 @@ def update_blocks_and_triangles():
                 blocks.append(Block(x, ground_y))
                 break
 
+    # Spawn new triangles if needed
     if len(triangles) < max_triangles:
         x_positions = list(range(WINDOW_X, WINDOW_X + 400, min_gap + triangle_base))
         random.shuffle(x_positions)
         for x in x_positions:
             if check_gap(x, blocks + triangles, triangle_base):
                 if random.choice([True, False]):
-                    triangles.append(Triangle(x, ground_y, triangle_base, triangle_height))  # Triangle on ground
+                    triangles.append(Triangle(x, ground_y, triangle_base, triangle_height))  # Ground triangle
                 else:
-                    triangles.append(Triangle(x, ceiling_y, triangle_base, triangle_height, flipped=True))  # Triangle on ceiling
+                    triangles.append(Triangle(x, ceiling_y, triangle_base, triangle_height, flipped=True))  # Ceiling triangle
                 break
+
+
 
 def draw_line(x1, y1, x2, y2, color):
     color=(1.0, 1.0, 1.0)
@@ -366,32 +381,14 @@ def draw_cross():
     MidpointLine(10, 500, 35, 475, color)
     MidpointLine(35, 500, 10, 475, color)
 
-def draw_heart1():
+def draw_heart(x, y):
     color = (1.0, 0.0, 0.0)
-    MidpointLine(10, 445, 22, 430, color)
-    MidpointLine(10, 445, 16, 452, color)
-    MidpointLine(16, 452, 22, 445, color)
-    MidpointLine(34, 445, 28, 452, color)
-    MidpointLine(28, 452, 22, 445, color)
-    MidpointLine(22, 430, 34, 445, color)
-
-def draw_heart2():
-    color = (1.0, 0.0, 0.0)
-    MidpointLine(10, 415, 22, 400, color)
-    MidpointLine(10, 415, 16, 422, color)
-    MidpointLine(16, 422, 22, 415, color)
-    MidpointLine(34, 415, 28, 422, color)
-    MidpointLine(28, 422, 22, 415, color)
-    MidpointLine(22, 400, 34, 415, color)
-
-def draw_heart3():
-    color = (1.0, 0.0, 0.0)
-    MidpointLine(10, 385, 22, 370, color)
-    MidpointLine(10, 385, 16, 392, color)
-    MidpointLine(16, 392, 22, 385, color)
-    MidpointLine(34, 385, 28, 392, color)
-    MidpointLine(28, 392, 22, 385, color)
-    MidpointLine(22, 370, 34, 385, color)
+    MidpointLine(x, y + 25, x + 12, y + 10, color)
+    MidpointLine(x, y + 25, x + 6, y + 32, color)
+    MidpointLine(x + 6, y + 32, x + 12, y + 25, color)
+    MidpointLine(x + 24, y + 25, x + 18, y + 32, color)
+    MidpointLine(x + 18, y + 32, x + 12, y + 25, color)
+    MidpointLine(x + 12, y + 10, x + 24, y + 25, color)
 
 def draw_text(text, x, y, color=(1.0, 1.0, 1.0)):
     glColor3f(*color)
@@ -463,10 +460,8 @@ def togglePause():
         print("Game Resumed")
 
 def restartGame():
-    global game_over, score, count, game_paused, highest_score, block_speed, blocks, triangles, player_x ,player_y ,velocity_y 
-    if score > highest_score:
-        highest_score = score
-    print(f"Highest Score: {highest_score:.0f}")    
+    global game_over, score, count, game_paused, block_speed, blocks, triangles, player_x ,player_y ,velocity_y 
+    print(f"Your Previous Score: {score:.0f}")    
     game_paused=False
     game_over = False
     count = 0
@@ -485,7 +480,7 @@ def restartGame():
 
 def display():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    global click, game_over, count, highest_score, game_paused
+    global click, game_over, count, game_paused
     glClearColor(0.0, 0.0, 0.0, 0.0)  # Set background color
 
     if game_over:
@@ -498,15 +493,19 @@ def display():
     draw_player()
 
     # Draw game UI (hearts, pause, etc.)
-    if count == 0:
-        draw_heart1()
-        draw_heart2()
-        draw_heart3()
-    elif count == 1:
-        draw_heart1()
-        draw_heart2()
-    elif count == 2:
-        draw_heart1()
+    base_x = 600  # Starting x-position for hearts
+    base_y = 510  # y-position below the score box
+    spacing = 40  # Space between hearts
+
+    if count == 0:  # Draw all three hearts
+        draw_heart(base_x, base_y)
+        draw_heart(base_x + spacing, base_y)
+        draw_heart(base_x + 2 * spacing, base_y)
+    elif count == 1:  # Draw two hearts
+        draw_heart(base_x, base_y)
+        draw_heart(base_x + spacing, base_y)
+    elif count == 2:  # Draw one heart
+        draw_heart(base_x, base_y)
     
     draw_left_arrow()
     draw_pause_symbol() if not game_paused else draw_play_symbol()
@@ -520,8 +519,8 @@ def display():
 
 
 def animate():
-    global block_speed, game_paused
-    if not game_paused:
+    global block_speed, game_paused, game_over
+    if not game_paused and not game_over:
         update_blocks_and_triangles()
         update_player()
 
@@ -533,15 +532,10 @@ def animate():
         glutPostRedisplay()
 
 
-
-
 def mouseClick(button, state, x, y):
-    global game_over, game_paused, click, highest_score
+    global game_over, game_paused, click, score
 
     if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:
-
-        glutPostRedisplay()
-        
         if 10 <= x <= 35 and 10 <= y <= 30: 
             print("Starting over!")
             restartGame()
@@ -551,8 +545,11 @@ def mouseClick(button, state, x, y):
 
         elif 10 <= x <= 35 and 100 <= y <= 125:  
             print("Goodbye!")
-            print(f"Your Highest Score is {highest_score:.0f}!")
+            print(f"Your Total Score is {score:.0f}!")
             glutLeaveMainLoop()
+        glutPostRedisplay()
+
+
 player_x = 100  # Fixed horizontal position (for now)
 player_y = 225  # Initial vertical position (at the floor)
 velocity_y = 0  # Vertical velocity (used for jump physics)
@@ -576,33 +573,50 @@ def keyboard(key, x, y):
         on_floor = True
         on_ceiling = False    
 
+
+def special_keyboard(key, x, y):
+    global player_x
+    step = 10  # Step size 
+
+    if key == GLUT_KEY_LEFT:  
+        player_x -= step
+        if player_x < 0: 
+            player_x = 0
+    elif key == GLUT_KEY_RIGHT:  
+        player_x += step
+        if player_x > WINDOW_X:  
+            player_x = WINDOW_X - 50  
+
+
 def update_player():
-    global player_y, velocity_y, is_jumping, player_x, game_paused, score
+    global player_y, velocity_y, is_jumping, player_x, game_paused
 
     if not game_paused:
-        score+=.05
-
-    # Apply gravity if the player is jumping (not touching the ground or ceiling)
+        # Apply gravity if the player is jumping (not touching the ground or ceiling)
         if is_jumping:
-
             player_y += velocity_y  # Update player position based on velocity
             player_x += 3
 
-        # Check if the player has reached the ceiling (y = 375)
+        # Check if the player has reached the ceiling
         if player_y >= 375:
             player_y = 375  # Clamp to ceiling
             velocity_y = 0  # Stop upward movement
             is_jumping = False  # Stop jumping
-            player_x -= .3
-        # Check if the player has reached the floor (y = 225)
+            player_x -= 0.3
+
+        # Check if the player has reached the floor
         if player_y <= 225:
             player_y = 225  # Clamp to floor
             velocity_y = 0  # Stop downward movement
             is_jumping = False  # Stop jumping
-            player_x -= .1
+            player_x -= 0.1
             
         if check_collision():
-            print(f"Collision detected! Hearts left: {3 - count}")
+           if count < 3:  # Only print the collision message if hearts are still left
+              print(f"Collision detected! Hearts left: {3 - count}")
+           if count >= 3:  # No hearts left
+              game_paused = True
+
 
 # Function to draw the player (red square)
 def draw_player():
@@ -620,9 +634,6 @@ def draw_player():
     glPopMatrix()
 
 
-
-
-# Function to handle the game update loop
 def update(value):
     update_player()  # Update the player's position based on jump and gravity
     glutPostRedisplay()  # Redraw the scene
@@ -641,12 +652,14 @@ def main():
     glutDisplayFunc(display_start_screen if show_start_screen else display)
     glutMouseFunc(mouse_click_start_screen)
     glutKeyboardFunc(keyboard)
+    glutSpecialFunc(special_keyboard) 
     glutIdleFunc(animate)
     glutTimerFunc(16, update, 0)
     glutMainLoop()
 
 
     glutMainLoop()
+
 
 if __name__ == "__main__":
     main()
