@@ -571,17 +571,17 @@ def update_player():
 def draw_player():
     glPushMatrix()
     glTranslatef(player_x, player_y, 0)  # Set the x and y position of the player
-    glColor3f(random.randint(0,1.0), random.randint(0,1.0), random.randint(0,1.0))  
+    glColor3f(random.randint(0, 1), random.randint(0, 1), random.randint(0, 1))  
 
-    # Draw the player as a 50x50 square
-    glBegin(GL_QUADS)
-    glVertex2f(-25, -25)  # Bottom left corner
-    glVertex2f(25, -25)   # Bottom right corner
-    glVertex2f(25, 25)    # Top right corner
-    glVertex2f(-25, 25)   # Top left corner
+    # Draw the player as a 50x50 square using points
+    glBegin(GL_POINTS)
+    for x in range(-25, 26):  # Iterate over x-coordinates
+        for y in range(-25, 26):  # Iterate over y-coordinates
+            glVertex2f(x, y)
     glEnd()
 
     glPopMatrix()
+
 
 
 # Function to handle the game update loop
