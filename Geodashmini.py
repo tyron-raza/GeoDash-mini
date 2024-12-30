@@ -397,7 +397,7 @@ def draw_text(text, x, y, color=(1.0, 1.0, 1.0)):
     for char in text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(char))
 
-def draw_highest_score_box():
+def draw_score_box():
     color = (0.0, 0.0, 1.0)
     box_x1, box_y1 = 580, 580
     box_x2, box_y2 = 780, 550
@@ -511,7 +511,7 @@ def display():
     draw_left_arrow()
     draw_pause_symbol() if not game_paused else draw_play_symbol()
     draw_cross()
-    draw_highest_score_box()
+    draw_score_box()
 
     glutSwapBuffers()  # Swap buffers for double buffering
 
