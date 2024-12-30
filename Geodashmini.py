@@ -250,10 +250,25 @@ def update_blocks_and_triangles():
                 break
 
 def draw_line(x1, y1, x2, y2):
-    glBegin(GL_LINES)
-    glVertex2f(x1, y1)
-    glVertex2f(x2, y2)
+    dx = abs(x2 - x1)
+    dy = abs(y2 - y1)
+    sx = 1 if x1 < x2 else -1
+    sy = 1 if y1 < y2 else -1
+    err = dx - dy
+    glBegin(GL_POINTS)
+    while True:
+        glVertex2f(x1, y1)  # Plot the current point
+        if x1 == x2 and y1 == y2:  # Exit when we reach the end point
+            break
+        e2 = 2 * err
+        if e2 > -dy:  # Move horizontally
+            err -= dy
+            x1 += sx
+        if e2 < dx:  # Move vertically
+            err += dx
+            y1 += sy
     glEnd()
+
 
 def draw_platform():
     glColor3f(1.0, 1.0, 1.0)
