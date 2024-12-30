@@ -159,7 +159,7 @@ class Triangle:
         # Draw points for the current column
             for y in range(min(y_min, y_max), max(y_min, y_max) + 1):
                 glVertex2f(x, y)
-    glEnd()
+            glEnd()
 
     def draw_glow(self):
     # Draw multiple transparent layers to simulate a glow effect
@@ -186,7 +186,7 @@ class Triangle:
             # Draw points for the current column
                 for y in range(min(y_start, y_end), max(y_start, y_end) + 1):
                     glVertex2f(float(x), float(y))  # Draw each point
-        glEnd()
+                glEnd()
 
 
 def check_gap(new_x, existing_objects, width):
