@@ -161,13 +161,6 @@ class Triangle:
                 glVertex2f(x, y)
     glEnd()
 
-
-    def draw_glow(self):
-        # Draw multiple transparent layers to simulate a glow effect
-        for i in range(20, 30):  # Increase the range for a larger glow
-            alpha = 0.05 * (6 - i)  # Decrease alpha for outer layers
-            scale = 1.0 + 0.1 * i  # Increase size for outer layers
-            glColor4f(0.8, 0.8, 0.2, alpha)  # Yellowish glow with transparency
     def draw_glow(self):
     # Draw multiple transparent layers to simulate a glow effect
         for i in range(20, 30):  # Increase the range for a larger glow
