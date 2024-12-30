@@ -24,23 +24,20 @@ def draw_text_centered(text, x, y, color=(1.0, 1.0, 1.0)):
 def display_start_screen():
     glClearColor(0.0, 0.0, 0.0, 0.0)  
     glClear(GL_COLOR_BUFFER_BIT)
-
     draw_text_centered("Welcome to Geo Dash-Mini !!!", 400, 410, color=(1.0, 1.0, 0.0))
 
-    button_color = (0.0, 1.0, 0.0)  
+    button_color = (0.0, 1.0, 0.0)
     button_x1, button_y1 = 350, 280
     button_x2, button_y2 = 450, 320
-
     glColor3f(*button_color)
-    glBegin(GL_QUADS)
-    glVertex2f(button_x1, button_y1)
-    glVertex2f(button_x2, button_y1)
-    glVertex2f(button_x2, button_y2)
-    glVertex2f(button_x1, button_y2)
+    glBegin(GL_POINTS)
+    for x in range(button_x1, button_x2 + 1):
+        for y in range(button_y1, button_y2 + 1):
+            glVertex2f(x, y)
     glEnd()
 
     draw_text_centered("Play", (button_x1 + button_x2) // 2, (button_y1 + button_y2) // 2 - 5, color=(0.0, 0.0, 0.0))
-    draw_top_play_symbol(400, 340)  
+    draw_top_play_symbol(400, 340)
 
     glutSwapBuffers()
 
