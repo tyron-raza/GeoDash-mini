@@ -12,7 +12,6 @@ game_over = False
 click = False
 score = 0
 count = 0
-highest_score = 0
 
 def draw_text_centered(text, x, y, color=(1.0, 1.0, 1.0)):
     glColor3f(*color)
@@ -136,32 +135,15 @@ def draw_cross():
     MidpointLine(10, 500, 35, 475, color)
     MidpointLine(35, 500, 10, 475, color)
 
-def draw_heart1():
+def draw_heart(x, y):
     color = (1.0, 0.0, 0.0)
-    MidpointLine(10, 445, 22, 430, color)
-    MidpointLine(10, 445, 16, 452, color)
-    MidpointLine(16, 452, 22, 445, color)
-    MidpointLine(34, 445, 28, 452, color)
-    MidpointLine(28, 452, 22, 445, color)
-    MidpointLine(22, 430, 34, 445, color)
+    MidpointLine(x, y + 25, x + 12, y + 10, color)
+    MidpointLine(x, y + 25, x + 6, y + 32, color)
+    MidpointLine(x + 6, y + 32, x + 12, y + 25, color)
+    MidpointLine(x + 24, y + 25, x + 18, y + 32, color)
+    MidpointLine(x + 18, y + 32, x + 12, y + 25, color)
+    MidpointLine(x + 12, y + 10, x + 24, y + 25, color)
 
-def draw_heart2():
-    color = (1.0, 0.0, 0.0)
-    MidpointLine(10, 415, 22, 400, color)
-    MidpointLine(10, 415, 16, 422, color)
-    MidpointLine(16, 422, 22, 415, color)
-    MidpointLine(34, 415, 28, 422, color)
-    MidpointLine(28, 422, 22, 415, color)
-    MidpointLine(22, 400, 34, 415, color)
-
-def draw_heart3():
-    color = (1.0, 0.0, 0.0)
-    MidpointLine(10, 385, 22, 370, color)
-    MidpointLine(10, 385, 16, 392, color)
-    MidpointLine(16, 392, 22, 385, color)
-    MidpointLine(34, 385, 28, 392, color)
-    MidpointLine(28, 392, 22, 385, color)
-    MidpointLine(22, 370, 34, 385, color)
 
 def draw_text(text, x, y, color=(1.0, 1.0, 1.0)):
     glColor3f(*color)
@@ -169,7 +151,7 @@ def draw_text(text, x, y, color=(1.0, 1.0, 1.0)):
     for char in text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(char))
 
-def draw_highest_score_box():
+def draw_score_box():
     color = (0.0, 0.0, 1.0)
     box_x1, box_y1 = 580, 580
     box_x2, box_y2 = 780, 550
@@ -178,7 +160,7 @@ def draw_highest_score_box():
     MidpointLine(box_x2, box_y1, box_x2, box_y2, color)
     MidpointLine(box_x1, box_y2, box_x2, box_y2, color)
 
-    draw_text(f"Highest Score: {highest_score}", box_x1 + 10, box_y2 + 5)
+    draw_text(f"Score: {score}", box_x1 + 10, box_y2 + 5)
 
 def togglePause():
     global game_paused
@@ -189,10 +171,8 @@ def togglePause():
         print("Game Resumed")
 
 def restartGame():
-    global game_over, score, count, game_paused, highest_score
-    if score > highest_score:
-        highest_score = score
-    print(f"Highest Score: {highest_score}")    
+    global game_over, score, count, game_paused
+    print(f" Previous Score: {score}")    
     game_paused=False
     game_over = False
     score = 0
@@ -200,7 +180,7 @@ def restartGame():
     glutPostRedisplay()
 
 def display():
-    global click, game_over, count, highest_score
+    global click, game_over, count
 
     if game_over:
         glClearColor(1.0, 1.0, 1.0, 0.0)
@@ -210,17 +190,21 @@ def display():
 
     glClear(GL_COLOR_BUFFER_BIT)
 
-    #drawing buttons
-    if count == 0:
-        draw_heart1()
-        draw_heart2()
-        draw_heart3()
-    elif count == 1:
-        draw_heart1()
-        draw_heart2()
-    elif count == 2:
-        draw_heart1()
-    
+    base_x = 600  # Starting x-position for hearts
+    base_y = 510  # y-position below the score box
+    spacing = 40  # Space between hearts
+
+    if count == 0:  # Draw all three hearts
+        draw_heart(base_x, base_y)
+        draw_heart(base_x + spacing, base_y)
+        draw_heart(base_x + 2 * spacing, base_y)
+    elif count == 1:  # Draw two hearts
+        draw_heart(base_x, base_y)
+        draw_heart(base_x + spacing, base_y)
+    elif count == 2:  # Draw one heart
+        draw_heart(base_x, base_y)
+
+
     draw_left_arrow()
     if not game_paused:
         draw_pause_symbol()
@@ -228,7 +212,7 @@ def display():
         draw_play_symbol() 
     draw_cross()
 
-    draw_highest_score_box()
+    draw_score_box()
 
     glutSwapBuffers()
 
