@@ -633,13 +633,14 @@ def update_player():
             player_x -= 0.1
             
         if check_collision():
-           if count < 3:  # Only print the collision message if hearts are still left
-              print(f"Collision detected! Hearts left: {3 - count}")
-           if count >= 3:  # No hearts left
-              game_paused = True
-              glutDisplayFunc(display_start_screen)
-              glutMouseFunc(mouse_click_start_screen)
-              restartGame()
+           if not game_paused:  
+                if count < 3:  # Only print the collision message if hearts are still left
+                   print(f"Collision detected! Hearts left: {3 - count}")
+                if count >= 3:  # No hearts left
+                   game_paused = True
+                   glutDisplayFunc(display_start_screen)
+                   glutMouseFunc(mouse_click_start_screen)
+                   restartGame()
 def draw_player():
     def midpoint_circle(radius):
     
