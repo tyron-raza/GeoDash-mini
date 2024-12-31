@@ -19,7 +19,7 @@ def draw_text_centered(text, x, y, color=(1.0, 1.0, 1.0)):
     length = len(text) * 9  
     glRasterPos2f(x - length // 2, y)
     for char in text:
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(char))
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, ord(char))
 
 def display_start_screen():
     glClearColor(0.0, 0.0, 0.0, 0.0)  
@@ -400,7 +400,7 @@ def draw_text(text, x, y, color=(1.0, 1.0, 1.0)):
     glColor3f(*color)
     glRasterPos2f(x, y)
     for char in text:
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(char))
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, ord(char))
 
 def draw_score_box():
     color = (0.0, 0.0, 1.0)
@@ -671,7 +671,7 @@ def draw_player():
         glEnd()
 
     glPushMatrix()
-    glColor3f(random.randint(0.0,1.0), random.randint(0.0,1.0),random.randint(0.0,1.0) )  
+    glColor3f(random.randint(0,1), random.randint(0,1),random.randint(0,1) )  
     midpoint_circle(25)
     midpoint_circle(24)
     midpoint_circle(23)
@@ -697,7 +697,7 @@ def update(value):
     update_player() 
 
     glutPostRedisplay()  # Redraw the scene
-    glutTimerFunc(33, update, 0)
+    glutTimerFunc(16, update, 0)
       # Continue the update loop
 
 def main():
@@ -716,7 +716,7 @@ def main():
     glutKeyboardFunc(keyboard)
     glutSpecialFunc(special_keyboard) 
     glutIdleFunc(animate)
-    glutTimerFunc(33, update, 0)
+    glutTimerFunc(16, update, 0)
     glutMainLoop()
 
 
