@@ -496,7 +496,9 @@ def display():
     glClearColor(0.0, 0.0, 0.0, 0.0)  # Set background color
 
     if game_over:
-        glClearColor(1.0, 1.0, 1.0, 0.0)  # Game over screen background
+        #glClearColor(1.0, 1.0, 1.0, 0.0)  # Game over screen background
+        glClearColor(random.randint(0,1),random.randint(0,1),random.randint(0,1),random.randint(0,1)) 
+    
 
     glClear(GL_COLOR_BUFFER_BIT)  # Clear buffers
     draw_platform()
@@ -587,21 +589,23 @@ def keyboard(key, x, y):
 
 
 def special_keyboard(key, x, y):
-    global player_x, block_speed
-    step = 10  # Step size 
+    global player_x, block_speed, game_paused
+    if not game_paused:
 
-    if key == GLUT_KEY_LEFT:  
-        player_x -= step
-        if player_x < 0: 
-            player_x = 0
-    elif key == GLUT_KEY_RIGHT:  
-        player_x += step
-        if player_x > WINDOW_X:  
-            player_x = WINDOW_X - 50 
-    elif key == GLUT_KEY_UP:
-        block_speed+=1 
-    elif key == GLUT_KEY_DOWN:
-         block_speed-=1 
+         step = 10  # Step size 
+
+         if key == GLUT_KEY_LEFT:  
+             player_x -= step
+             if player_x < 0: 
+                 player_x = 0
+         elif key == GLUT_KEY_RIGHT:  
+             player_x += step
+             if player_x > WINDOW_X:  
+                 player_x = WINDOW_X - 50 
+         elif key == GLUT_KEY_UP:
+             block_speed+=1 
+         elif key == GLUT_KEY_DOWN:
+             block_speed-=1 
 
 
 def update_player():
