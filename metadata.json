@@ -1,0 +1,6 @@
+{
+  "name": "Geo Dash Mini",
+  "description": "An action-packed arcade-style Geometry Dash platformer featuring procedural obstacle generation, retro glowing vector visuals, gravity-switching jump physics, and hearts-based scoring.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
